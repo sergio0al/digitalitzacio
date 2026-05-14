@@ -225,8 +225,13 @@
   <div class="form-panel card">
     <div class="card-title">Formulari d'enquesta</div>
 
+    <label for="alumne">Alumne</label>
+    <select id="alumne">
+      <!-- Es carregarà dinàmicament segons el grup -->
+    </select>
+
     <label for="grup">Grup</label>
-    <select id="grup">
+    <select id="grup" onchange="updateAlumneSelect()">
       <option selected>DAW1A</option>
       <option>DAW1B</option>
       <option>ASX1</option>
@@ -323,30 +328,39 @@
 // ── DATA ──
 const grupData = {
   DAW1A: {
-    respostes: 12,
-    dist: [0, 2, 3, 4, 3],
+    respostes: 13,
+    dist: [0, 2, 3, 5, 3],
     responses: [
-      { score: 4, comment: "La part de conclusions és interessant." },
-      { score: 3, comment: "Em va costar la part de gràfics." },
-      { score: 5, comment: "Molt bona dinàmica de classe!" },
+      { name: "Marc Garcia", score: 4, comment: "La part de conclusions és interessant." },
+      { name: "Júlia Martínez", score: 3, comment: "Em va costar la part de gràfics." },
+      { name: "Pol López", score: 5, comment: "Molt bona dinàmica de classe!" },
+      { name: "Joan Torres", score: 4, comment: "Tot correcte, m'ha agradat el ritme." },
     ]
   },
   DAW1B: {
-    respostes: 10,
-    dist: [0, 1, 4, 3, 2],
+    respostes: 11,
+    dist: [0, 1, 4, 3, 3],
     responses: [
-      { score: 4, comment: "Bona explicació dels conceptes bàsics." },
-      { score: 3, comment: "Massa teoria, poc pràctic." },
+      { name: "Laia Rodríguez", score: 4, comment: "Bona explicació dels conceptes bàsics." },
+      { name: "Pau Sánchez", score: 3, comment: "Massa teoria, poc pràctic." },
+      { name: "Maria Vila", score: 5, comment: "Molt útil per al projecte final." },
     ]
   },
   ASX1: {
-    respostes: 8,
-    dist: [1, 1, 2, 3, 1],
+    respostes: 9,
+    dist: [1, 1, 2, 3, 2],
     responses: [
-      { score: 4, comment: "Pràctiques molt útils." },
-      { score: 2, comment: "Ritme massa ràpid." },
+      { name: "Carla Pérez", score: 4, comment: "Pràctiques molt útils." },
+      { name: "Oriol Gómez", score: 2, comment: "Ritme massa ràpid." },
+      { name: "David Bosch", score: 5, comment: "M'ha encantat la sessió de configuració." },
     ]
   }
+};
+
+const alumnesPerGrup = {
+  DAW1A: ["Marc Garcia", "Júlia Martínez", "Pol López", "Joan Torres", "Marta Fernández", "Arnau Ruiz", "Sònia Vidal"],
+  DAW1B: ["Laia Rodríguez", "Pau Sánchez", "Maria Vila", "Elena Soler", "Roger Martí", "Anna Serra", "Jordi Mestre"],
+  ASX1: ["Carla Pérez", "Oriol Gómez", "David Bosch", "Gerard Pujol", "Sílvia Font", "Albert Roca", "Mireia Costa"]
 };
 
 const groupColors = ['#dc2626','#ea580c','#ca8a04','#2563eb','#16a34a'];
@@ -443,7 +457,7 @@ function drawRecent(grup) {
   let html = responses.map(r => `
     <div class="response-card">
       <div><span class="response-group-tag">${grup}</span></div>
-      <div class="response-score">Puntuació: ${r.score}/5</div>
+      <div class="response-score">${r.name ? `<strong>${r.name}</strong> — ` : ''}Puntuació: ${r.score}/5</div>
       <div class="response-comment">Comentari: ${r.comment}</div>
     </div>
   `).join('');
@@ -467,22 +481,46 @@ function updatePanel() {
 
 function guardarResposta() {
   const grup = document.getElementById('grup').value;
+  const alumneSelect = document.getElementById('alumne');
+  const alumne = alumneSelect.value;
   const score = parseInt(document.getElementById('satisfaccio').value);
   const comment = document.getElementById('comentari').value.trim();
+
+  if (!alumne) { alert('No queden alumnes per votar o no n\'has seleccionat cap.'); return; }
   if (score < 1 || score > 5) { alert('La puntuació ha de ser entre 1 i 5.'); return; }
 
   grupData[grup].respostes++;
   grupData[grup].dist[score-1]++;
-  if (comment) grupData[grup].responses.unshift({ score, comment });
+  if (comment) grupData[grup].responses.unshift({ name: alumne, score, comment });
 
   document.getElementById('filterGrup').value = grup;
+  updateAlumneSelect(); // Refresca la llista d'alumnes restant
   updatePanel();
   document.getElementById('satisfaccio').value = '';
   document.getElementById('comentari').value = '';
   alert('Resposta guardada correctament!');
 }
 
+function updateAlumneSelect() {
+  const grup = document.getElementById('grup').value;
+  const alumneSelect = document.getElementById('alumne');
+  alumneSelect.innerHTML = '';
+
+  // Mirem qui ha votat ja en aquest grup específic
+  const jaHanVotado = new Set(grupData[grup].responses.map(r => r.name));
+
+  // Afegim només els que falten
+  alumnesPerGrup[grup].forEach(nom => {
+    if (!jaHanVotado.has(nom)) {
+      const opt = document.createElement('option');
+      opt.textContent = nom;
+      alumneSelect.appendChild(opt);
+    }
+  });
+}
+
 // Init
+updateAlumneSelect();
 updatePanel();
 </script>
 </body>
