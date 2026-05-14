@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulari d'enquesta & Panell d'analítica</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0f2f5;
+    --surface: #ffffff;
+    --surface2: #f7f8fa;
+    --border: #e2e5ea;
+    --primary: #2563eb;
+    --primary-light: #eff4ff;
+    --primary-dark: #1d4ed8;
+    --text: #111827;
+    --text-muted: #6b7280;
+    --text-light: #9ca3af;
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --orange: #ea580c;
+    --orange-light: #ffedd5;
+    --red: #dc2626;
+    --yellow: #ca8a04;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+    align-items: start;
+  }
+
+  /* ── CARD BASE ── */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+  }
+
+  .card-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  /* ── FORM PANEL ── */
+  .form-panel .card-title { font-size: 19px; }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    margin-top: 14px;
+  }
+  label:first-of-type { margin-top: 0; }
+
+  select, input[type="number"], textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    transition: border-color .2s;
+    appearance: none;
+  }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+  select:focus, input:focus, textarea:focus { border-color: var(--primary); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .btn-submit {
+    margin-top: 18px;
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+  }
+  .btn-submit:hover { background: var(--primary-dark); }
+  .btn-submit:active { transform: scale(.98); }
+
+  /* ── ANALYTICS ── */
+  .analytics-panel { display: flex; flex-direction: column; gap: 16px; }
+
+  .analytics-panel > .card-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 0;
+  }
+
+  /* Filter */
+  .filter-row { display: flex; flex-direction: column; gap: 6px; }
+  .filter-label { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+  .filter-note { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  /* KPI chips */
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .kpi {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+  }
+  .kpi-label { font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
+  .kpi-value { font-size: 22px; font-weight: 700; color: var(--text); margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+  /* Distribution bars */
+  .dist-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 7px;
+    font-size: 13px;
+  }
+  .dist-label { width: 80px; color: var(--text-muted); flex-shrink: 0; }
+  .dist-bar-wrap { flex: 1; background: #e9edf3; border-radius: 99px; height: 8px; overflow: hidden; }
+  .dist-bar { height: 100%; border-radius: 99px; background: var(--primary); transition: width .6s cubic-bezier(.4,0,.2,1); }
+  .dist-count { width: 20px; text-align: right; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); }
+
+  /* Pie charts */
+  .pie-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .pie-card {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+  }
+  .pie-title { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; }
+  .pie-content { display: flex; align-items: center; gap: 12px; }
+  .pie-legend { font-size: 11.5px; line-height: 1.8; }
+  .legend-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+
+  /* Comparison bars */
+  .comp-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .comp-label { width: 140px; flex-shrink: 0; color: var(--text); }
+  .comp-label.selected { font-weight: 600; color: var(--primary); }
+  .comp-bar-wrap { flex: 1; background: #e9edf3; border-radius: 99px; height: 9px; overflow: hidden; }
+  .comp-bar { height: 100%; border-radius: 99px; background: var(--primary); }
+  .comp-bar.muted { background: #93c5fd; }
+  .comp-score { width: 40px; text-align: right; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); }
+
+  /* Recent responses */
+  .response-card {
+    border-left: 3px solid var(--primary);
+    background: var(--primary-light);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 11px 13px;
+    margin-bottom: 9px;
+    font-size: 13px;
+  }
+  .response-card:last-child { margin-bottom: 0; }
+  .response-group-tag {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 99px;
+    margin-bottom: 5px;
+    letter-spacing: .04em;
+  }
+  .response-score { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .response-comment { color: var(--text-muted); }
+
+  /* SVG pie helper */
+  svg.pie { width: 72px; height: 72px; flex-shrink: 0; }
+
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .pie-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ══ LEFT: FORMULARI ══ -->
+  <div class="form-panel card">
+    <div class="card-title">Formulari d'enquesta</div>
+
+    <label for="grup">Grup</label>
+    <select id="grup">
+      <option selected>DAW1A</option>
+      <option>DAW1B</option>
+      <option>ASX1</option>
+    </select>
+
+    <label for="satisfaccio">Satisfacció global (1-5)</label>
+    <input type="number" id="satisfaccio" min="1" max="5" value="4">
+
+    <label for="comentari">Comentari (opcional)</label>
+    <textarea id="comentari" placeholder="Qué milloraries de la sessió?"></textarea>
+
+    <button class="btn-submit" onclick="guardarResposta()">Guardar resposta</button>
+  </div>
+
+  <!-- ══ RIGHT: ANALYTICS ══ -->
+  <div class="analytics-panel">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div style="font-size:22px;font-weight:700;">Panell d'analítica</div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card" style="padding:16px 20px;">
+      <div class="filter-label">Filtre del panell</div>
+      <select id="filterGrup" onchange="updatePanel()" style="margin-top:6px;">
+        <option>DAW1A</option>
+        <option>DAW1B</option>
+        <option>ASX1</option>
+      </select>
+      <div class="filter-note" id="filterNote">Mostrant dades del grup seleccionat al formulari: DAW1A</div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi">
+        <div class="kpi-label">Respostes</div>
+        <div class="kpi-value" id="kpi-respostes">12</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Mitjana</div>
+        <div class="kpi-value" id="kpi-mitjana">3.67</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">% 4 o 5</div>
+        <div class="kpi-value" id="kpi-pct">58.3%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Grup analitzat</div>
+        <div class="kpi-value" id="kpi-grup" style="font-size:16px;padding-top:4px;">DAW1A</div>
+      </div>
+    </div>
+
+    <!-- Distribution -->
+    <div class="card">
+      <div class="card-title">Distribució de valoracions</div>
+      <div id="distribution"></div>
+    </div>
+
+    <!-- Pie charts -->
+    <div class="pie-row">
+      <div class="pie-card">
+        <div class="pie-title">Quesito de puntuacions</div>
+        <div class="pie-content">
+          <svg class="pie" id="pie-full" viewBox="0 0 36 36"></svg>
+          <div class="pie-legend" id="legend-full"></div>
+        </div>
+      </div>
+      <div class="pie-card">
+        <div class="pie-title">Quesito positives (4-5)</div>
+        <div class="pie-content">
+          <svg class="pie" id="pie-pos" viewBox="0 0 36 36"></svg>
+          <div class="pie-legend" id="legend-pos"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Group comparison -->
+    <div class="card">
+      <div class="card-title">Comparativa de mitjana per grup</div>
+      <div id="comparison"></div>
+    </div>
+
+    <!-- Recent responses -->
+    <div class="card">
+      <div class="card-title">Últimes respostes</div>
+      <div id="recent-responses"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+const grupData = {
+  DAW1A: {
+    respostes: 12,
+    dist: [0, 2, 3, 4, 3],
+    responses: [
+      { score: 4, comment: "La part de conclusions és interessant." },
+      { score: 3, comment: "Em va costar la part de gràfics." },
+      { score: 5, comment: "Molt bona dinàmica de classe!" },
+    ]
+  },
+  DAW1B: {
+    respostes: 10,
+    dist: [0, 1, 4, 3, 2],
+    responses: [
+      { score: 4, comment: "Bona explicació dels conceptes bàsics." },
+      { score: 3, comment: "Massa teoria, poc pràctic." },
+    ]
+  },
+  ASX1: {
+    respostes: 8,
+    dist: [1, 1, 2, 3, 1],
+    responses: [
+      { score: 4, comment: "Pràctiques molt útils." },
+      { score: 2, comment: "Ritme massa ràpid." },
+    ]
+  }
+};
+
+const groupColors = ['#dc2626','#ea580c','#ca8a04','#2563eb','#16a34a'];
+const starLabels = ['1 estrella','2 estrelles','3 estrelles','4 estrelles','5 estrelles'];
+
+function getMean(dist) {
+  const total = dist.reduce((a,b)=>a+b,0);
+  if (!total) return 0;
+  const sum = dist.reduce((a,b,i)=>a+b*(i+1),0);
+  return (sum/total).toFixed(2);
+}
+
+function getPct45(dist) {
+  const total = dist.reduce((a,b)=>a+b,0);
+  if (!total) return '0%';
+  return ((( dist[3]+dist[4])/total)*100).toFixed(1)+'%';
+}
+
+function drawDistribution(grup) {
+  const dist = grupData[grup].dist;
+  const max = Math.max(...dist, 1);
+  let html = '';
+  dist.forEach((count, i) => {
+    const pct = (count / max * 100).toFixed(1);
+    html += `<div class="dist-row">
+      <span class="dist-label">${starLabels[i]}</span>
+      <div class="dist-bar-wrap"><div class="dist-bar" style="width:${pct}%;background:${groupColors[i]};"></div></div>
+      <span class="dist-count">${count}</span>
+    </div>`;
+  });
+  document.getElementById('distribution').innerHTML = html;
+}
+
+function drawPieFull(grup) {
+  const dist = grupData[grup].dist;
+  const total = dist.reduce((a,b)=>a+b,0) || 1;
+  const colors = groupColors;
+  const labels = ['1/5','2/5','3/5','4/5','5/5'];
+  drawPie('pie-full', dist, total, colors, labels.map((l,i)=>`${l}: ${dist[i]} (${((dist[i]/total)*100).toFixed(1)}%)`), 'legend-full');
+}
+
+function drawPiePos(grup) {
+  const dist = grupData[grup].dist;
+  const total = dist.reduce((a,b)=>a+b,0) || 1;
+  const pos = dist[3]+dist[4];
+  const neg = total - pos;
+  const pctPos = ((pos/total)*100).toFixed(1);
+  const pctNeg = ((neg/total)*100).toFixed(1);
+  drawPie('pie-pos', [pos, neg], total, ['#16a34a','#ea580c'],
+    [`Positives (4-5): ${pctPos}%`, `No positives (1-3): ${pctNeg}%`], 'legend-pos');
+}
+
+function drawPie(svgId, values, total, colors, legendLines, legendId) {
+  const svg = document.getElementById(svgId);
+  const cx = 18, cy = 18, r = 15.9, strokeW = 4;
+  const circumference = 2 * Math.PI * r;
+  let offset = 0;
+  let circles = '';
+  values.forEach((v, i) => {
+    const pct = v / total;
+    const dash = pct * circumference;
+    const gap = circumference - dash;
+    circles += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none"
+      stroke="${colors[i]}" stroke-width="${strokeW}"
+      stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}"
+      stroke-dashoffset="${(-offset * circumference).toFixed(2)}"
+      transform="rotate(-90 ${cx} ${cy})"/>`;
+    offset += pct;
+  });
+  svg.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r+strokeW/2}" fill="#f0f2f5"/>` + circles;
+
+  const legend = document.getElementById(legendId);
+  legend.innerHTML = legendLines.map((l,i)=>`<div><span class="legend-dot" style="background:${colors[i]}"></span>${l}</div>`).join('');
+}
+
+function drawComparison(selected) {
+  const scores = { DAW1A: 3.67, DAW1B: 3.50, ASX1: 3.50 };
+  const max = 5;
+  let html = '';
+  Object.entries(scores).forEach(([g, s]) => {
+    const isSel = g === selected;
+    const pct = (s/max*100).toFixed(1);
+    html += `<div class="comp-row">
+      <span class="comp-label ${isSel?'selected':''}">${g}${isSel?' (seleccionat)':''}</span>
+      <div class="comp-bar-wrap"><div class="comp-bar ${isSel?'':'muted'}" style="width:${pct}%;"></div></div>
+      <span class="comp-score">${s}/5</span>
+    </div>`;
+  });
+  document.getElementById('comparison').innerHTML = html;
+}
+
+function drawRecent(grup) {
+  const responses = grupData[grup].responses;
+  let html = responses.map(r => `
+    <div class="response-card">
+      <div><span class="response-group-tag">${grup}</span></div>
+      <div class="response-score">Puntuació: ${r.score}/5</div>
+      <div class="response-comment">Comentari: ${r.comment}</div>
+    </div>
+  `).join('');
+  document.getElementById('recent-responses').innerHTML = html;
+}
+
+function updatePanel() {
+  const grup = document.getElementById('filterGrup').value;
+  const data = grupData[grup];
+  document.getElementById('filterNote').textContent = `Mostrant dades del grup seleccionat al formulari: ${grup}`;
+  document.getElementById('kpi-respostes').textContent = data.respostes;
+  document.getElementById('kpi-mitjana').textContent = getMean(data.dist);
+  document.getElementById('kpi-pct').textContent = getPct45(data.dist);
+  document.getElementById('kpi-grup').textContent = grup;
+  drawDistribution(grup);
+  drawPieFull(grup);
+  drawPiePos(grup);
+  drawComparison(grup);
+  drawRecent(grup);
+}
+
+function guardarResposta() {
+  const grup = document.getElementById('grup').value;
+  const score = parseInt(document.getElementById('satisfaccio').value);
+  const comment = document.getElementById('comentari').value.trim();
+  if (score < 1 || score > 5) { alert('La puntuació ha de ser entre 1 i 5.'); return; }
+
+  grupData[grup].respostes++;
+  grupData[grup].dist[score-1]++;
+  if (comment) grupData[grup].responses.unshift({ score, comment });
+
+  document.getElementById('filterGrup').value = grup;
+  updatePanel();
+  document.getElementById('satisfaccio').value = '';
+  document.getElementById('comentari').value = '';
+  alert('Resposta guardada correctament!');
+}
+
+// Init
+updatePanel();
+</script>
+</body>
+</html>
