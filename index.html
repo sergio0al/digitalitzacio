@@ -328,8 +328,8 @@
 // ── DATA ──
 const grupData = {
   DAW1A: {
-    respostes: 13,
-    dist: [0, 2, 3, 5, 3],
+    respostes: 4,
+    dist: [0, 0, 1, 2, 1],
     responses: [
       { name: "Marc Garcia", score: 4, comment: "La part de conclusions és interessant." },
       { name: "Júlia Martínez", score: 3, comment: "Em va costar la part de gràfics." },
@@ -338,8 +338,8 @@ const grupData = {
     ]
   },
   DAW1B: {
-    respostes: 11,
-    dist: [0, 1, 4, 3, 3],
+    respostes: 3,
+    dist: [0, 0, 1, 1, 1],
     responses: [
       { name: "Laia Rodríguez", score: 4, comment: "Bona explicació dels conceptes bàsics." },
       { name: "Pau Sánchez", score: 3, comment: "Massa teoria, poc pràctic." },
@@ -347,8 +347,8 @@ const grupData = {
     ]
   },
   ASX1: {
-    respostes: 9,
-    dist: [1, 1, 2, 3, 2],
+    respostes: 3,
+    dist: [0, 1, 0, 1, 1],
     responses: [
       { name: "Carla Pérez", score: 4, comment: "Pràctiques molt útils." },
       { name: "Oriol Gómez", score: 2, comment: "Ritme massa ràpid." },
@@ -437,16 +437,17 @@ function drawPie(svgId, values, total, colors, legendLines, legendId) {
 }
 
 function drawComparison(selected) {
-  const scores = { DAW1A: 3.67, DAW1B: 3.50, ASX1: 3.50 };
   const max = 5;
   let html = '';
-  Object.entries(scores).forEach(([g, s]) => {
-    const isSel = g === selected;
-    const pct = (s/max*100).toFixed(1);
+
+  Object.keys(grupData).forEach(grupName => {
+    const isSel = grupName === selected;
+    const mean = getMean(grupData[grupName].dist);
+    const pct = (mean / max * 100).toFixed(1);
     html += `<div class="comp-row">
-      <span class="comp-label ${isSel?'selected':''}">${g}${isSel?' (seleccionat)':''}</span>
+      <span class="comp-label ${isSel?'selected':''}">${grupName}${isSel?' (seleccionat)':''}</span>
       <div class="comp-bar-wrap"><div class="comp-bar ${isSel?'':'muted'}" style="width:${pct}%;"></div></div>
-      <span class="comp-score">${s}/5</span>
+      <span class="comp-score">${mean}/5</span>
     </div>`;
   });
   document.getElementById('comparison').innerHTML = html;
@@ -491,7 +492,7 @@ function guardarResposta() {
 
   grupData[grup].respostes++;
   grupData[grup].dist[score-1]++;
-  if (comment) grupData[grup].responses.unshift({ name: alumne, score, comment });
+  grupData[grup].responses.unshift({ name: alumne, score, comment: comment || "(Sense comentari)" });
 
   document.getElementById('filterGrup').value = grup;
   updateAlumneSelect(); // Refresca la llista d'alumnes restant
